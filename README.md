@@ -54,3 +54,15 @@ python -m hisav infer --data "$SAVE" --bundle assets/default --output "$OUTPUT/e
 ```
 
 See [docs/recipe.md](docs/recipe.md) for training stages, supervision and checkpoint provenance, and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for the vendored components.
+
+## Campus recordings
+
+The [campus dataset](https://huggingface.co/datasets/playwithmino/ELMA-Campus) contains 40 recordings (about 64 minutes), synchronized six-channel audio/video, Chinese scripts and the script reader’s mouth crops. After the environment setup above, install the Hugging Face CLI (`pip install huggingface_hub`) and run:
+
+```bash
+hf download playwithmino/ELMA-Campus --repo-type dataset --local-dir data/ELMA-Campus
+hf download playwithmino/SAV-BandNet --revision b6a852cf20f28ba2178f222ad04f5ffaab85f6e5 --local-dir assets/campus
+python -m hisav infer --data data/ELMA-Campus --data-format campus --bundle assets/campus --output outputs/campus
+```
+
+This extracts the script reader using 1 s windows and the supplied crops. Each numbered output folder contains `target.wav` and `complete.json`, which maps it back to the recording ID. Add `--check` to validate assets without initializing the model, or `--limit 1` for one recording. No clean waveform references are available for these recordings, so SI-SNR is left unavailable.

@@ -45,3 +45,47 @@ class Windows(torch.utils.data.Dataset):
  def __len__(self):return len(self.plan)
  def __getitem__(self,i):
   scene,start=self.plan[i];x=self.data.window(scene,start);x['scene']=scene;x['start']=start;return x
+
+class CampusData:
+ """One visually specified reader per recording, without clean audio references."""
+ def __init__(self,root,split='tt'):
+  self.root=Path(root).resolve();self.split=split
+  self.rows=[json.loads(line) for line in (self.root/'manifests'/f'{split}.jsonl').read_text().splitlines() if line.strip()]
+  seen=set()
+  for r in self.rows:
+   if r.get('schema_version')!='elma-campus-v1':raise ValueError('Expected elma-campus-v1 manifest')
+   if not r.get('uid') or r['uid'] in seen:raise ValueError('Recording UIDs must be nonempty and unique')
+   seen.add(r['uid'])
+   if (r.get('sample_rate'),r.get('channels'),r.get('mouth_fps'))!=(16000,6,25):raise ValueError('Campus inputs require 16 kHz six-channel audio and 25 fps mouth crops')
+   if r.get('reference_audio_available') is not False:raise ValueError('Campus recordings have no clean waveform reference')
+   if not isinstance(r.get('samples'),int) or r['samples']<=0:raise ValueError('Recording sample count must be positive')
+   for key in ('audio','video','mouth'):
+    self.path(r,key)
+    digest=r.get('sha256',{}).get(key,'')
+    if len(digest)!=64 or any(c not in '0123456789abcdef' for c in digest):raise ValueError(f'Missing or invalid {key} SHA-256')
+ def path(self,row,key):
+  rel=Path(row[f'{key}_path'])
+  if rel.is_absolute() or '..' in rel.parts:raise ValueError('Campus media paths must be relative to the dataset root')
+  p=self.root/rel
+  # HF local directories can contain symlinks; the manifest itself cannot escape the root.
+  if not p.is_file():raise FileNotFoundError(p)
+  return p
+ def verify(self,row,key):
+  from .utils import sha
+  p=self.path(row,key)
+  if sha(p)!=row['sha256'][key]:raise ValueError(f'Campus {key} hash mismatch for {row["uid"]}')
+  return p
+ def scene(self,i):
+  r=self.rows[i];audio=self.verify(r,'audio');mouth_file=self.verify(r,'mouth')
+  wave,sr=sf.read(audio,dtype='float32',always_2d=True)
+  if sr!=16000 or wave.shape!=(r['samples'],6) or not np.isfinite(wave).all():raise ValueError('Audio does not match the finite six-channel sample contract')
+  with np.load(mouth_file,allow_pickle=False) as q:
+   mouth=q['data'].copy();valid=q['valid'].copy()
+  expected=(r['samples']+639)//640
+  if mouth.dtype!=np.uint8 or mouth.ndim!=3 or mouth.shape[1:]!=(96,96) or abs(len(mouth)-expected)>1:raise ValueError('Mouth crops must be uint8 [frames,96,96] at 25 fps')
+  if len(mouth)!=r.get('mouth_frames') or valid.dtype!=np.bool_ or valid.shape!=(len(mouth),):raise ValueError('Mouth frame count or validity mask mismatch')
+  return dict(wave=wave.T,reference=None,mouth=[mouth],valid=[valid],row=r)
+ def check(self):
+  for i,r in enumerate(self.rows):
+   self.verify(r,'video');self.scene(i)
+  return len(self.rows)

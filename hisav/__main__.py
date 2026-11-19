@@ -3,23 +3,29 @@ import argparse,os,json,shutil
 from pathlib import Path
 
 def main():
- p=argparse.ArgumentParser(description='HiSAV: spatial–audiovisual target extraction')
+ p=argparse.ArgumentParser(description='ELMA: explicit localization and temporal memory for target extraction')
  sub=p.add_subparsers(dest='command',required=True)
  for name in ['train','infer']:
   q=sub.add_parser(name);q.add_argument('--data',required=True);q.add_argument('--output',required=True);q.add_argument('--bundle',default=os.environ.get('HISAV_BUNDLE',str(Path(__file__).resolve().parents[1]/'assets/default')));q.add_argument('--device',default='cuda');q.add_argument('--limit',type=int,default=0,help='Smoke only: limit scenes');q.add_argument('--check',action='store_true',help='Validate files/counts without model or GPU initialization')
   if name=='train':
    q.add_argument('--localization-epochs',type=int,default=2);q.add_argument('--separator-epochs',type=int,default=1);q.add_argument('--extraction-epochs',type=int,default=4);q.add_argument('--identity-epochs',type=int,default=20);q.add_argument('--batch',type=int,default=2);q.add_argument('--workers',type=int,default=2);q.add_argument('--smoke-steps',type=int,default=0)
   else:
-   q.add_argument('--split',choices=['tr','cv','tt'],default='tt');q.add_argument('--rank',type=int,default=0);q.add_argument('--world',type=int,default=1)
+   q.add_argument('--data-format',choices=['save','campus'],default='save',help='SAVE scenes or one-reader campus recordings');q.add_argument('--split',choices=['tr','cv','tt'],default='tt');q.add_argument('--rank',type=int,default=0);q.add_argument('--world',type=int,default=1)
  a=p.parse_args();a.data=str(Path(a.data).resolve());a.output=str(Path(a.output).resolve());source=Path(a.bundle).resolve()
  from .utils import sha
  provenance=json.loads((source/'PROVENANCE.json').read_text())
  for name,digest in provenance['files'].items():
   if isinstance(digest,dict):digest=digest['sha256']
   assert sha(source/name)==digest, f'Bundle hash mismatch: {name}'
- counts={s:sum(bool(x.strip()) for x in (Path(a.data)/'manifests'/f'{s}.jsonl').read_text().splitlines()) for s in ['tr','cv','tt']}
+ counts={s:sum(bool(x.strip()) for x in (Path(a.data)/'manifests'/f'{s}.jsonl').read_text().splitlines()) for s in ['tr','cv','tt'] if (Path(a.data)/'manifests'/f'{s}.jsonl').is_file()}
  if a.command=='train' and not a.limit:assert counts==dict(tr=32768,cv=1000,tt=2000),counts
- if a.command=='infer':assert a.world>0 and 0<=a.rank<a.world
+ if a.command=='infer':
+  assert a.world>0 and 0<=a.rank<a.world
+  if a.split not in counts:raise FileNotFoundError(f'Missing manifest: {a.split}.jsonl')
+  if a.data_format=='campus':
+   from .data import CampusData
+   campus=CampusData(a.data,a.split)
+   if a.check:campus.check()
  if a.check:print(json.dumps(dict(bundle=str(source),counts=counts,model_initialized=False)));return
  if a.command=='train':
   target=Path(a.output)/'bundle';target.parent.mkdir(parents=True,exist_ok=True)
