@@ -4,7 +4,7 @@
 
 Implementation accompanying *When Short Visual Context Is Ambiguous: Explicit Localization and Temporal Memory for Low-Latency Speech Separation*.
 
-Short windows can contain little lip motion, making the visual evidence ambiguous. A two-output separator can also return the same speaker at a different output in the next window. ELMA combines explicit target localization with temporal memory to select the visible speaker’s voice from six-channel mixtures. The method is now named **ELMA**; this repository retains the historical HiSAV name and the `hisav` Python package. The corresponding [ELMA repository](https://github.com/vu-duy-tung/ELMA) contains the same implementation code.
+Short windows can contain little lip motion, making the visual evidence ambiguous. A two-output separator can also return the same speaker at a different output in the next window. ELMA combines explicit target localization with temporal memory to select the visible speaker’s voice from six-channel mixtures. The method is now named **ELMA**; the Python package retains the name `hisav`. The corresponding [ELMA repository](https://github.com/vu-duy-tung/ELMA) contains the same implementation code.
 
 ## Method
 
