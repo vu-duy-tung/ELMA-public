@@ -75,7 +75,7 @@ class EngineState:
    f=self.encode(wave,mouth[None],valid[None]);return self.select({k:v[0] for k,v in f.items()},raw)
 class StreamingEngine(EngineState):
  def __init__(self,bundle=None,device='cuda'):
-  if bundle is not None and Path(bundle).resolve()!=BUNDLE.resolve():raise ValueError('Set HISAV_BUNDLE before importing hisav')
+  if bundle is not None and Path(bundle).resolve()!=BUNDLE.resolve():raise ValueError('Set ELMA_BUNDLE before importing elma')
   ck=torch.load(BUNDLE/'selector.pt',map_location='cpu',weights_only=True);self.context=1;self.fine_temporal=False
   self.m=SharedImageModel(LOCALIZER,DAVE,device);ranker=FrontendRanker({'config':ck['parent_config']},{'args':ck['ranker_args']}).to(device).eval();ranker.load_state_dict(ck['model'],strict=True)
   for k in ['crossA2V','crossV2A','selfAV','audioEncoder','visualTCN','visualConv1D']:setattr(self.m.talknet.net,k,getattr(ranker,k))

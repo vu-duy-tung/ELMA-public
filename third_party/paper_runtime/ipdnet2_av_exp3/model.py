@@ -6,7 +6,7 @@ import common as audio
 from common import torch,np,CACHE,ROOT,POS,features,targets,pit_loss,Decoder
 OUT=ROOT/os.environ.get('AV_RUN','ipdnet2_av_exp3/context8')
 DATA=audio.OUT if os.environ.get('AV_DATA_MODE','small')=='small' else ROOT/'ipdnet2_av_exp3'
-if os.environ.get('AV_DATA_MODE','small')!='small':CACHE=Path(os.environ.get('HISAV_AV_CACHE',ROOT/'cache/ipdnet2_av'))
+if os.environ.get('AV_DATA_MODE','small')!='small':CACHE=Path(os.environ.get('ELMA_AV_CACHE',ROOT/'cache/ipdnet2_av'))
 WINDOW=int(os.environ.get('AV_WINDOW','80'))
 class AVNet(torch.nn.Module):
  def __init__(self,initialize=True):

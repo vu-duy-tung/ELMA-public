@@ -1,8 +1,8 @@
 import unittest,tempfile,json
 from pathlib import Path
 import numpy as np
-from hisav.data import crop,Windows
-from hisav.infer import si
+from elma.data import crop,Windows
+from elma.infer import si
 class Contracts(unittest.TestCase):
  def test_startup_and_tail(self):
   x=np.arange(10000,dtype=np.float32)[None]

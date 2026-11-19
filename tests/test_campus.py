@@ -5,9 +5,9 @@ from unittest.mock import patch
 import numpy as np
 import soundfile as sf
 import torch
-from hisav.data import CampusData
-from hisav.utils import sha
-from hisav.infer import run
+from elma.data import CampusData
+from elma.utils import sha
+from elma.infer import run
 
 class CampusContracts(unittest.TestCase):
  def setUp(self):
@@ -44,7 +44,7 @@ class CampusContracts(unittest.TestCase):
   p=self.root/'recording0/mouth.npz';np.savez(p,data=np.zeros((11,96,96),np.uint8),valid=np.ones(10,bool));self.rows[0]['sha256']['mouth']=sha(p);self.write_manifest()
   with self.assertRaisesRegex(ValueError,'validity mask'):CampusData(self.root).scene(0)
  def test_cli_check_needs_only_test_manifest_and_no_model(self):
-  proc=subprocess.run([sys.executable,'-m','hisav','infer','--data',str(self.root),'--data-format','campus','--bundle',str(self.bundle),'--output',str(self.root/'unused'),'--check'],text=True,capture_output=True)
+  proc=subprocess.run([sys.executable,'-m','elma','infer','--data',str(self.root),'--data-format','campus','--bundle',str(self.bundle),'--output',str(self.root/'unused'),'--check'],text=True,capture_output=True)
   self.assertEqual(proc.returncode,0,proc.stderr);result=json.loads(proc.stdout)
   self.assertEqual(result['counts'],{'tt':2});self.assertFalse(result['model_initialized']);self.assertFalse((self.root/'unused').exists())
  def test_streaming_reset_start_tail_and_no_reference_metric(self):
@@ -57,7 +57,7 @@ class CampusContracts(unittest.TestCase):
     if self.first:outer.assertTrue((wave[:,:,:6400]==0).all());outer.assertFalse(valid[:,:10].any());self.first=False
     observed.append(('step',self.resets))
     return {'waveform':wave[:,0,6400:12800],'choice':torch.zeros(1,dtype=torch.long)}
-  with patch.dict(sys.modules,{'hisav.model':types.SimpleNamespace(StreamingEngine=Engine)}),patch('hisav.paths.BUNDLE',self.bundle),patch('hisav.infer.si',side_effect=AssertionError('No clean references')):
+  with patch.dict(sys.modules,{'elma.model':types.SimpleNamespace(StreamingEngine=Engine)}),patch('elma.paths.BUNDLE',self.bundle),patch('elma.infer.si',side_effect=AssertionError('No clean references')):
    run(self.args())
   self.assertEqual(observed,[('reset',1),('step',1),('step',1),('reset',2),('step',2)])
   for i,r in enumerate(self.rows):
@@ -72,7 +72,7 @@ class CampusContracts(unittest.TestCase):
    def step(self,w,m,v):return {'waveform':torch.cat([w[:,0,6400:12800],-w[:,0,6400:12800]]),'choice':torch.tensor([0,1])}
   ds=SimpleNamespace(rows=[{'uid':'save_fixture'}],scene=lambda i:scene)
   args=self.args();args.data_format='save'
-  with patch.dict(sys.modules,{'hisav.model':types.SimpleNamespace(StreamingEngine=Engine)}),patch('hisav.paths.BUNDLE',self.bundle),patch('hisav.infer.SaveData',return_value=ds):run(args)
+  with patch.dict(sys.modules,{'elma.model':types.SimpleNamespace(StreamingEngine=Engine)}),patch('elma.paths.BUNDLE',self.bundle),patch('elma.infer.SaveData',return_value=ds):run(args)
   result=json.loads((self.root/'output/COMPLETE_rank0.json').read_text());self.assertEqual(result['targets'],2);self.assertTrue(np.isfinite(result['si_snr']))
   self.assertTrue((self.root/'output/000000/target_a.wav').exists());self.assertTrue((self.root/'output/000000/target_b.wav').exists())
 

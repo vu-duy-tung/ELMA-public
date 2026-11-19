@@ -1,10 +1,10 @@
-# ELMA (formerly HiSAV)
+# ELMA
 
 **Explicit Localization and Memory for Audiovisual separation**
 
 Implementation accompanying *When Short Visual Context Is Ambiguous: Explicit Localization and Temporal Memory for Low-Latency Speech Separation*.
 
-Short windows can contain little lip motion, making the visual evidence ambiguous. A two-output separator can also return the same speaker at a different output in the next window. ELMA combines explicit target localization with temporal memory to select the visible speaker’s voice from six-channel mixtures. The method is now named **ELMA**; the Python package retains the name `hisav`. The corresponding [ELMA repository](https://github.com/vu-duy-tung/ELMA) contains the same implementation code.
+Short windows can contain little lip motion, making the visual evidence ambiguous. A two-output separator can also return the same speaker at a different output in the next window. ELMA combines explicit target localization with temporal memory to select the visible speaker’s voice from six-channel mixtures.
 
 ## Method
 
@@ -15,6 +15,16 @@ Short windows can contain little lip motion, making the visual evidence ambiguou
 3. **Temporal memory.** Candidate alignment connects separator outputs across windows. Candidate-specific states and speaker identity cues use earlier evidence to refine the audiovisual selection scores.
 
 The released implementation uses waveform-overlap correlation for candidate alignment and speaker embeddings for score correction; see the [recipe and implementation details](docs/recipe.md). With 1 s windows, the system uses 0.4 s of past context, emits 0.4 s, and uses 0.2 s of lookahead. The initial input wait is therefore **0.6 s before computation**, rather than 1 s or the processing time alone.
+
+## Listen to the two speakers
+
+Click a preview to play the video. Both videos use the same 12-second campus recording.
+
+| Original mixture · 12 s | Selected speech · 1 s windows · 24 s |
+| --- | --- |
+| [![Play the original mixture](docs/demos/mixture-preview.jpg)](https://github.com/vu-duy-tung/ELMA-public/blob/main/docs/demos/mixture.mp4) | [![Play the selected target speech](docs/demos/selected-speech-1s-preview.jpg)](https://github.com/vu-duy-tung/ELMA-public/blob/main/docs/demos/selected-speech-1s.mp4) |
+
+The selected-speech video targets the speaker in the white shirt first, then the other speaker at **0:12**. This is a retained demonstration from an earlier prototype.
 
 ## Results reported in the paper
 
@@ -38,19 +48,19 @@ Follow [docs/setup.md](docs/setup.md) to install the dependencies, prepare a com
 **Validate the assets without initializing a model or GPU:**
 
 ```bash
-python -m hisav train --data "$SAVE" --bundle assets/default --output "$OUTPUT/training" --check
+python -m elma train --data "$SAVE" --bundle assets/default --output "$OUTPUT/training" --check
 ```
 
 **Fine-tune the components and selector on all 32,768 training scenes:**
 
 ```bash
-python -m hisav train --data "$SAVE" --bundle assets/default --output "$OUTPUT/training"
+python -m elma train --data "$SAVE" --bundle assets/default --output "$OUTPUT/training"
 ```
 
 **Infer on the 2,000 test scenes using the supplied bundle:**
 
 ```bash
-python -m hisav infer --data "$SAVE" --bundle assets/default --output "$OUTPUT/evaluation"
+python -m elma infer --data "$SAVE" --bundle assets/default --output "$OUTPUT/evaluation"
 ```
 
 See [docs/recipe.md](docs/recipe.md) for training stages, supervision and checkpoint provenance, and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for the vendored components.
@@ -62,7 +72,7 @@ The [campus dataset](https://huggingface.co/datasets/playwithmino/ELMA-Campus) c
 ```bash
 hf download playwithmino/ELMA-Campus --repo-type dataset --local-dir data/ELMA-Campus
 hf download playwithmino/SAV-BandNet --revision b6a852cf20f28ba2178f222ad04f5ffaab85f6e5 --local-dir assets/campus
-python -m hisav infer --data data/ELMA-Campus --data-format campus --bundle assets/campus --output outputs/campus
+python -m elma infer --data data/ELMA-Campus --data-format campus --bundle assets/campus --output outputs/campus
 ```
 
 This extracts the script reader using 1 s windows and the supplied crops. Each numbered output folder contains `target.wav` and `complete.json`, which maps it back to the recording ID. Add `--check` to validate assets without initializing the model, or `--limit 1` for one recording. No clean waveform references are available for these recordings, so SI-SNR is left unavailable.

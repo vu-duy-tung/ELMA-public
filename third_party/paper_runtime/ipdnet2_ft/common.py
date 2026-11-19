@@ -8,9 +8,9 @@ import torch
 from scipy.special import j0
 from IPDnet2 import OnlineSpatialNet
 from utils_ import forgetting_norm
-ROOT=Path(os.environ.get('HISAV_LOCALIZATION_ROOT',BASE.parents[1]/'assets/localization'))
+ROOT=Path(os.environ.get('ELMA_LOCALIZATION_ROOT',BASE.parents[1]/'assets/localization'))
 OUT=ROOT/'ipdnet2_ft'
-CACHE=Path(os.environ.get('HISAV_LOCALIZATION_CACHE',ROOT/'cache/ipdnet2'))
+CACHE=Path(os.environ.get('ELMA_LOCALIZATION_CACHE',ROOT/'cache/ipdnet2'))
 POS=np.c_[.035*np.cos(np.arange(6)*np.pi/3),.035*np.sin(np.arange(6)*np.pi/3),np.zeros(6)]
 def model(channels=6):
  return OnlineSpatialNet(dim_input=channels*2,dim_output=(channels-1)*4,num_layers=8,dim_hidden=96,num_heads=4,kernel_size=(5,3),conv_groups=(8,8),norms=['LN','LN','GN','LN','LN','LN'],dim_squeeze=8,num_freqs=256,attention='mamba(16,4)',rope=False,time_compression_layer=0,fre_compression_ratio=16,time_compression_ratio=5)

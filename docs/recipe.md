@@ -9,7 +9,7 @@ The training command implements full-coverage continued fine-tuning, with fresh 
 | Visually conditioned IPDNet2 | All TR scenes; source-location labels, activity, target spectral supervision; frozen TalkNet image encoder | 2 epochs; AdamW 1e-5 backbone / 1e-4 adapter |
 | DAVE | All TR scenes; 1 s inputs with clean-source PIT and frozen 4 s teacher supervision | 1 epoch; AdamW 1e-5 |
 | Feature cache | All TR/CV scenes; frozen updated localizer, separator and image features | One pass; output storage |
-| HiSAV selector and temporal components | Full scene sequences; central-emission reference-choice loss and clean active-speaker auxiliary loss | 4 epochs; AdamW 1e-5 |
+| ELMA selector and temporal components | Full scene sequences; central-emission reference-choice loss and clean active-speaker auxiliary loss | 4 epochs; AdamW 1e-5 |
 | Speaker identity projection | Eligible TR candidates, source-speaker labels, separate scene-level internal validation | 20 epochs; AdamW 1e-3 |
 
 Localization and separator selection use CV loss; selector selection uses normalized CV reference-choice regret. Identity fitting uses a fixed TRAIN scene holdout. The test split is never used for training or selection. Existing voice-memory gate settings remain fixed. Image weights stay frozen, and pretrained temporal batch-normalization statistics remain fixed. Candidate alignment uses overlapping waveform correlation; the learned identity projection adjusts target-selection scores, not candidate permutations.

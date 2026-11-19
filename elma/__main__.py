@@ -6,7 +6,7 @@ def main():
  p=argparse.ArgumentParser(description='ELMA: explicit localization and temporal memory for target extraction')
  sub=p.add_subparsers(dest='command',required=True)
  for name in ['train','infer']:
-  q=sub.add_parser(name);q.add_argument('--data',required=True);q.add_argument('--output',required=True);q.add_argument('--bundle',default=os.environ.get('HISAV_BUNDLE',str(Path(__file__).resolve().parents[1]/'assets/default')));q.add_argument('--device',default='cuda');q.add_argument('--limit',type=int,default=0,help='Smoke only: limit scenes');q.add_argument('--check',action='store_true',help='Validate files/counts without model or GPU initialization')
+  q=sub.add_parser(name);q.add_argument('--data',required=True);q.add_argument('--output',required=True);q.add_argument('--bundle',default=os.environ.get('ELMA_BUNDLE',str(Path(__file__).resolve().parents[1]/'assets/default')));q.add_argument('--device',default='cuda');q.add_argument('--limit',type=int,default=0,help='Smoke only: limit scenes');q.add_argument('--check',action='store_true',help='Validate files/counts without model or GPU initialization')
   if name=='train':
    q.add_argument('--localization-epochs',type=int,default=2);q.add_argument('--separator-epochs',type=int,default=1);q.add_argument('--extraction-epochs',type=int,default=4);q.add_argument('--identity-epochs',type=int,default=20);q.add_argument('--batch',type=int,default=2);q.add_argument('--workers',type=int,default=2);q.add_argument('--smoke-steps',type=int,default=0)
   else:
@@ -30,10 +30,10 @@ def main():
  if a.command=='train':
   target=Path(a.output)/'bundle';target.parent.mkdir(parents=True,exist_ok=True)
   if not target.exists():shutil.copytree(source,target)
-  os.environ['HISAV_BUNDLE']=str(target)
+  os.environ['ELMA_BUNDLE']=str(target)
   from .train import run
  else:
-  os.environ['HISAV_BUNDLE']=str(source)
+  os.environ['ELMA_BUNDLE']=str(source)
   from .infer import run
  run(a)
 if __name__=='__main__':main()

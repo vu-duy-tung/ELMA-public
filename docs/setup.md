@@ -16,9 +16,9 @@ Set `$SAVE` to the local SAVE dataset directory, containing `manifests/tr.jsonl`
 Validate local assets and split counts without initializing a model or GPU:
 
 ```bash
-python -m hisav train --data "$SAVE" --bundle assets/default --output "$OUTPUT/training" --check
+python -m elma train --data "$SAVE" --bundle assets/default --output "$OUTPUT/training" --check
 ```
 
-Inference supports disjoint `--rank` / `--world` scene shards, with each process assigned a device using `CUDA_VISIBLE_DEVICES`. The Python API reads `HISAV_BUNDLE` before importing model modules; the command-line interface sets it from `--bundle`.
+Inference supports disjoint `--rank` / `--world` scene shards, with each process assigned a device using `CUDA_VISIBLE_DEVICES`. The Python API reads `ELMA_BUNDLE` before importing model modules; the command-line interface sets it from `--bundle`.
 
 Vendored component notices apply separately from pretrained weights and dataset assets. This snapshot does not establish redistribution rights for externally supplied assets.

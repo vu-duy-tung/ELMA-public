@@ -3,11 +3,11 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "hisav"
-version = "0.2.0"
-description = "Spatial–audiovisual consistency for streaming target-speech extraction"
+name = "elma"
+version = "0.3.0"
+description = "Explicit localization and temporal memory for low-latency target-speech extraction"
 requires-python = ">=3.11"
 dependencies = ["torch>=2.6", "numpy", "scipy", "soundfile", "opencv-python", "einops", "asteroid-filterbanks", "tqdm"]
 
 [tool.setuptools.packages.find]
-include = ["hisav*"]
+include = ["elma*"]
